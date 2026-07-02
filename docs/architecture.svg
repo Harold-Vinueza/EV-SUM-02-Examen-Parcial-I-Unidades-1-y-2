@@ -1,0 +1,95 @@
+<svg viewBox="0 0 1000 620" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrowDashed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c2410c"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1000" height="620" fill="#f8fafc"/>
+  <text x="500" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">
+    MercadoQuevedo — Diagrama de Despliegue (UML) / C4 Nivel 2
+  </text>
+  <text x="500" y="54" text-anchor="middle" font-size="12" fill="#64748b">
+    Arquitectura de microservicios · Database per Service · API Gateway
+  </text>
+
+  <!-- Cliente -->
+  <rect x="30" y="270" width="120" height="70" rx="8" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+  <text x="90" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#0f172a">Cliente</text>
+  <text x="90" y="317" text-anchor="middle" font-size="10" fill="#475569">Postman / Web</text>
+
+  <!-- Docker Compose boundary -->
+  <rect x="200" y="90" width="760" height="480" rx="10" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="215" y="112" font-size="12" font-weight="700" fill="#475569">docker-compose · red interna "mercadoquevedo-net" (bridge)</text>
+
+  <!-- Nginx -->
+  <rect x="240" y="270" width="140" height="70" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="1.5"/>
+  <text x="310" y="298" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">Nginx</text>
+  <text x="310" y="314" text-anchor="middle" font-size="10" fill="#1e3a8a">reverse proxy :80</text>
+  <text x="310" y="328" text-anchor="middle" font-size="9" fill="#1e40af">único puerto expuesto: 8080→80</text>
+
+  <!-- svc-catalogo -->
+  <rect x="470" y="150" width="180" height="90" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="1.5"/>
+  <text x="560" y="178" text-anchor="middle" font-size="13" font-weight="700" fill="#14532d">svc-catalogo</text>
+  <text x="560" y="194" text-anchor="middle" font-size="10" fill="#166534">Spring Boot :8000</text>
+  <text x="560" y="208" text-anchor="middle" font-size="9" fill="#166534">controller · service</text>
+  <text x="560" y="221" text-anchor="middle" font-size="9" fill="#166534">repository · model</text>
+
+  <!-- svc-pedidos -->
+  <rect x="470" y="400" width="180" height="90" rx="8" fill="#fef3c7" stroke="#b45309" stroke-width="1.5"/>
+  <text x="560" y="428" text-anchor="middle" font-size="13" font-weight="700" fill="#78350f">svc-pedidos</text>
+  <text x="560" y="444" text-anchor="middle" font-size="10" fill="#92400e">Spring Boot :8000</text>
+  <text x="560" y="458" text-anchor="middle" font-size="9" fill="#92400e">controller · service</text>
+  <text x="560" y="471" text-anchor="middle" font-size="9" fill="#92400e">repository · model</text>
+
+  <!-- db-catalogo -->
+  <rect x="770" y="150" width="160" height="90" rx="8" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <text x="850" y="182" text-anchor="middle" font-size="13" font-weight="700" fill="#312e81">db-catalogo</text>
+  <text x="850" y="198" text-anchor="middle" font-size="10" fill="#3730a3">PostgreSQL 16</text>
+  <text x="850" y="212" text-anchor="middle" font-size="9" fill="#3730a3">vol: catalogo_data</text>
+  <text x="850" y="225" text-anchor="middle" font-size="9" fill="#3730a3">(sin puerto al host)</text>
+
+  <!-- db-pedidos -->
+  <rect x="770" y="400" width="160" height="90" rx="8" fill="#e0e7ff" stroke="#4338ca" stroke-width="1.5"/>
+  <text x="850" y="432" text-anchor="middle" font-size="13" font-weight="700" fill="#312e81">db-pedidos</text>
+  <text x="850" y="448" text-anchor="middle" font-size="10" fill="#3730a3">PostgreSQL 16</text>
+  <text x="850" y="462" text-anchor="middle" font-size="9" fill="#3730a3">vol: pedidos_data</text>
+  <text x="850" y="475" text-anchor="middle" font-size="9" fill="#3730a3">(sin puerto al host)</text>
+
+  <!-- Flows -->
+  <line x1="150" y1="305" x2="238" y2="305" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="192" y="297" text-anchor="middle" font-size="9" fill="#334155">HTTP :8080</text>
+
+  <line x1="382" y1="290" x2="468" y2="215" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="405" y="240" text-anchor="middle" font-size="9" fill="#334155">/api/v1/productos/*</text>
+
+  <line x1="382" y1="320" x2="468" y2="430" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="400" y="380" text-anchor="middle" font-size="9" fill="#334155">/api/v1/pedidos/*</text>
+
+  <line x1="652" y1="195" x2="768" y2="195" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="710" y="187" text-anchor="middle" font-size="9" fill="#334155">SQL</text>
+
+  <line x1="652" y1="445" x2="768" y2="445" stroke="#334155" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="710" y="437" text-anchor="middle" font-size="9" fill="#334155">SQL</text>
+
+  <!-- inter-service call, dashed / distinguished -->
+  <path d="M 560,400 C 560,330 560,290 560,242" fill="none" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="5,4" marker-end="url(#arrowDashed)"/>
+  <text x="650" y="315" text-anchor="middle" font-size="10" fill="#c2410c" font-weight="600">GET /productos/{id}</text>
+  <text x="650" y="329" text-anchor="middle" font-size="9" fill="#c2410c">REST síncrono · timeout 2s</text>
+  <text x="650" y="343" text-anchor="middle" font-size="9" fill="#c2410c">503 si no responde</text>
+
+  <!-- legend -->
+  <rect x="215" y="530" width="14" height="14" fill="#dbeafe" stroke="#1d4ed8"/>
+  <text x="235" y="541" font-size="10" fill="#334155">API Gateway</text>
+  <rect x="335" y="530" width="14" height="14" fill="#dcfce7" stroke="#15803d"/>
+  <text x="355" y="541" font-size="10" fill="#334155">Microservicio catálogo</text>
+  <rect x="500" y="530" width="14" height="14" fill="#fef3c7" stroke="#b45309"/>
+  <text x="520" y="541" font-size="10" fill="#334155">Microservicio pedidos</text>
+  <rect x="655" y="530" width="14" height="14" fill="#e0e7ff" stroke="#4338ca"/>
+  <text x="675" y="541" font-size="10" fill="#334155">Base de datos (por servicio)</text>
+  <line x1="215" y1="558" x2="245" y2="558" stroke="#c2410c" stroke-width="2.5" stroke-dasharray="5,4"/>
+  <text x="252" y="561" font-size="10" fill="#334155">Comunicación síncrona inter-servicio (REST + timeout)</text>
+</svg>

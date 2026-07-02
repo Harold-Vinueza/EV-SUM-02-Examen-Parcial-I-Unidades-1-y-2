@@ -1,0 +1,104 @@
+services:
+
+  db-catalogo:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: catalogo_user
+      POSTGRES_PASSWORD: catalogo_pass
+      POSTGRES_DB: catalogo_db
+    volumes:
+      - catalogo_data:/var/lib/postgresql/data
+    networks:
+      - mercadoquevedo-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catalogo_user -d catalogo_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    # Sin 'ports': la base de datos NO se expone al host, solo a la red interna.
+
+  db-pedidos:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pedidos_user
+      POSTGRES_PASSWORD: pedidos_pass
+      POSTGRES_DB: pedidos_db
+    volumes:
+      - pedidos_data:/var/lib/postgresql/data
+    networks:
+      - mercadoquevedo-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pedidos_user -d pedidos_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  svc-catalogo:
+    build: ./svc-catalogo
+    environment:
+      DATABASE_URL: jdbc:postgresql://db-catalogo:5432/catalogo_db
+      DB_USER: catalogo_user
+      DB_PASSWORD: catalogo_pass
+    depends_on:
+      db-catalogo:
+        condition: service_healthy
+    networks:
+      - mercadoquevedo-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 30s   # Spring Boot + JVM tarda más en arrancar que FastAPI
+    # Sin 'ports': solo se llega a svc-catalogo a través de Nginx o de la red interna.
+
+  svc-pedidos:
+    build: ./svc-pedidos
+    environment:
+      DATABASE_URL: jdbc:postgresql://db-pedidos:5432/pedidos_db
+      DB_USER: pedidos_user
+      DB_PASSWORD: pedidos_pass
+      CATALOGO_BASE_URL: http://svc-catalogo:8000
+      CATALOGO_TIMEOUT_SECONDS: "2"
+    depends_on:
+      db-pedidos:
+        condition: service_healthy
+      svc-catalogo:
+        condition: service_healthy
+    networks:
+      - mercadoquevedo-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 8
+      start_period: 30s
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"   # Único puerto expuesto al host — puerta de entrada del sistema
+    depends_on:
+      svc-catalogo:
+        condition: service_healthy
+      svc-pedidos:
+        condition: service_healthy
+    networks:
+      - mercadoquevedo-net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  mercadoquevedo-net:
+    driver: bridge
+
+volumes:
+  catalogo_data:
+  pedidos_data:

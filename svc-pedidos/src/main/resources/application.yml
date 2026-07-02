@@ -1,0 +1,33 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: svc-pedidos
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://db-pedidos:5432/pedidos_db}
+    username: ${DB_USER:pedidos_user}
+    password: ${DB_PASSWORD:pedidos_pass}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+
+springdoc:
+  api-docs:
+    path: /api/v1/openapi.json
+  swagger-ui:
+    path: /api/v1/docs
+
+# Configuración de la comunicación síncrona con svc-catalogo (Parte C del examen)
+catalogo:
+  base-url: ${CATALOGO_BASE_URL:http://svc-catalogo:8000}
+  timeout-seconds: ${CATALOGO_TIMEOUT_SECONDS:2}
+
+logging:
+  level:
+    ec.edu.uteq.mercadoquevedo: INFO

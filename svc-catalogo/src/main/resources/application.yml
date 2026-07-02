@@ -1,0 +1,28 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: svc-catalogo
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://db-catalogo:5432/catalogo_db}
+    username: ${DB_USER:catalogo_user}
+    password: ${DB_PASSWORD:catalogo_pass}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+
+springdoc:
+  api-docs:
+    path: /api/v1/openapi.json
+  swagger-ui:
+    path: /api/v1/docs
+
+logging:
+  level:
+    ec.edu.uteq.mercadoquevedo: INFO
