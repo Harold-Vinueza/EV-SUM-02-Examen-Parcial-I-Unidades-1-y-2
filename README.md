@@ -1,3 +1,5 @@
 # Evidencia de la Nota del SGA.
-<img width="1689" height="697" alt="image" src="https://github.com/user-attachments/assets/0111a38e-926e-4ac5-89b7-e84aa0199bad" />
+<img width="1673" height="456" alt="image" src="https://github.com/user-attachments/assets/e5f63245-85c1-4731-bf8b-acbca2ca31f0" />
+![Uploading image.png…]()
+
 
