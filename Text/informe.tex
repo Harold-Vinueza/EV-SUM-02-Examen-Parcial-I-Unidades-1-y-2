@@ -1,0 +1,639 @@
+\documentclass[11pt,a4paper]{article}
+
+% ===================== PAQUETES =====================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ===================== COLORES =====================
+\definecolor{uteqazul}{RGB}{30,58,138}
+\definecolor{codebg}{RGB}{245,245,245}
+\definecolor{codegreen}{RGB}{0,128,0}
+\definecolor{codegray}{RGB}{110,110,110}
+\definecolor{codepurple}{RGB}{130,30,150}
+
+% ===================== ESTILO DE CÓDIGO =====================
+\lstdefinestyle{javastyle}{
+    backgroundcolor=\color{codebg},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{uteqazul}\bfseries,
+    stringstyle=\color{codepurple},
+    numberstyle=\tiny\color{codegray},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{black!20},
+    language=Java
+}
+\lstset{style=javastyle}
+
+% ===================== ENCABEZADOS =====================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Aplicaciones Distribuidas (ISR-701) — EV-PR-U2}
+\fancyhead[R]{\small MercadoQuevedo}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\normalfont\Large\bfseries\color{uteqazul}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{uteqazul}}{\thesubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=uteqazul,
+    urlcolor=uteqazul,
+    citecolor=uteqazul,
+    pdftitle={MercadoQuevedo - Examen Practico Unidad 2},
+    pdfauthor={Harold Vinueza}
+}
+
+\newcommand{\ok}{\textcolor{green!50!black}{\checkmark}}
+
+% ===================== DOCUMENTO =====================
+\begin{document}
+
+% ---------- PORTADA ----------
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\large UNIVERSIDAD TÉCNICA ESTATAL DE QUEVEDO\par}
+    {\large Facultad de Ciencias de la Computación y Diseño Digital\par}
+    {\large Carrera de Ingeniería de Software\par}
+    \vspace{1.5cm}
+
+    \rule{\linewidth}{0.5mm}\\[0.4cm]
+    {\huge\bfseries Examen Práctico — Unidad 2\par}
+    \vspace{0.3cm}
+    {\Large Arquitecturas Distribuidas: Microservicios, APIs RESTful\\ y Contenerización\par}
+    \vspace{0.2cm}
+    {\large Caso: MercadoQuevedo — Marketplace distribuido\par}
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+
+    \begin{tabbing}
+        \hspace{4cm} \= \kill
+        \textbf{Asignatura:} \> Aplicaciones Distribuidas (ISR-701) \\[0.2cm]
+        \textbf{Unidad:} \> 2 — Arquitecturas Distribuidas \\[0.2cm]
+        \textbf{Código del instrumento:} \> EV-PR-U2 \\[0.2cm]
+        \textbf{Modalidad:} \> Individual — Laboratorio con defensa técnica oral \\[0.2cm]
+        \textbf{Estudiante:} \> Harold Vinueza \\[0.2cm]
+        \textbf{Docente:} \> Ing. Guerrero Ulloa Gleiston Cicerón, Mg.Sc. \\[0.2cm]
+        \textbf{Período académico:} \> 2026--2027 \\[0.2cm]
+        \textbf{Repositorio:} \> \url{https://github.com/Harold-Vinueza/EV-SUM-02-Examen-Parcial-I-Unidades-1-y-2} \\[0.2cm]
+        \textbf{Stack:} \> Java 21 · Spring Boot 3.3 · PostgreSQL 16 · Docker Compose
+    \end{tabbing}
+
+    \vfill
+    {\large Quevedo, Los Ríos, Ecuador — Julio 2026\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ======================================================
+\section{Introducción}
+% ======================================================
+
+El presente informe documenta el diseño e implementación de \textbf{MercadoQuevedo},
+un prototipo de arquitectura de microservicios desarrollado para el Examen
+Práctico de la Unidad 2 de la asignatura Aplicaciones Distribuidas (ISR-701).
+El sistema resuelve el caso planteado por el docente: una plataforma de
+marketplace para comerciantes locales del cantón Quevedo, migrando desde un
+monolito conceptual hacia una arquitectura de microservicios que evidencia
+separación de dominios, diseño RESTful disciplinado y despliegue reproducible
+mediante contenedores.
+
+El prototipo implementa dos microservicios independientes —\texttt{svc-catalogo}
+y \texttt{svc-pedidos}— siguiendo el patrón \emph{Database per Service}
+\cite{richardson2018}, comunicados de forma síncrona vía REST con manejo
+explícito de fallos, contenerizados con Docker mediante \emph{multi-stage
+builds}, y orquestados con Docker Compose detrás de un \emph{reverse proxy}
+Nginx.
+
+Este documento se organiza siguiendo las cinco partes de la rúbrica de
+evaluación (C1--C7): arquitectura y diseño en capas, diseño de la API REST,
+comunicación entre servicios, contenerización, orquestación, calidad del
+repositorio, y el componente de análisis y defensa técnica.
+
+% ======================================================
+\section{Parte A — Arquitectura de Microservicios y Diseño en Capas}
+% ======================================================
+
+\subsection{Descomposición del dominio}
+
+Siguiendo el enunciado del examen, el dominio de MercadoQuevedo se descompuso
+en dos capacidades de negocio independientes, cada una con su propio
+microservicio y su propia base de datos (\emph{Database per Service}
+\cite{richardson2018}):
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{\texttt{svc-catalogo}}: altas, bajas, modificaciones y
+    consultas de productos (SKU, nombre, precio, stock).
+    \item \textbf{\texttt{svc-pedidos}}: creación de pedidos que referencian
+    uno o más productos, cálculo de subtotales y consulta del estado del pedido.
+\end{itemize}
+
+Ninguno de los dos servicios comparte esquema ni tabla de base de datos con el
+otro; \texttt{svc-pedidos} solo conserva una \emph{referencia externa}
+(\texttt{productoId}) al recurso remoto, nunca una copia de su estado interno.
+
+\subsection{Diagrama de arquitectura}
+
+La Figura~\ref{fig:arquitectura} muestra el diagrama de despliegue (UML / C4
+Nivel 2) del sistema. El diagrama fuente editable se encuentra en
+\texttt{docs/architecture.drawio} del repositorio (formato draw.io/diagrams.net).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{figures/architecture.png}
+    \caption{Diagrama de despliegue de MercadoQuevedo. Cliente $\to$ Nginx
+    (única puerta de entrada, puerto 8080) $\to$ \texttt{svc-catalogo} /
+    \texttt{svc-pedidos}, cada uno con su base de datos PostgreSQL propia.
+    La flecha punteada representa la comunicación síncrona inter-servicio
+    con timeout explícito.}
+    \label{fig:arquitectura}
+\end{figure}
+
+\textbf{Nota de compilación (Overleaf):} exporta \texttt{docs/architecture.drawio}
+como PNG (draw.io $\to$ File $\to$ Export as $\to$ PNG, resolución 300 DPI) y
+súbelo a \texttt{figures/architecture.png} en tu proyecto de Overleaf antes de
+compilar.
+
+\subsection{Diseño en capas}
+
+Cada microservicio se organiza en cuatro capas con responsabilidades
+estrictamente separadas, siguiendo el patrón arquitectónico visto en la
+Unidad 2 (arquitectura en capas dentro de cada microservicio):
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{@{}ll@{}}
+        \toprule
+        \textbf{Capa} & \textbf{Responsabilidad} \\
+        \midrule
+        \texttt{controller} & Expone los endpoints REST, traduce HTTP $\leftrightarrow$ DTOs \\
+        \texttt{service} & Reglas de negocio (SKU único, stock, existencia) \\
+        \texttt{repository} & Acceso a datos vía Spring Data JPA \\
+        \texttt{model} & Entidades JPA (\texttt{Producto}, \texttt{Pedido}, \texttt{PedidoItem}) \\
+        \texttt{dto} & Contratos de entrada/salida (\emph{records} inmutables) \\
+        \texttt{exception} & Excepciones de dominio + \texttt{@RestControllerAdvice} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Capas dentro de cada microservicio}
+\end{table}
+
+El \texttt{controller} nunca accede directamente al \texttt{repository}, y la
+entidad JPA (\texttt{Producto}) nunca se serializa directamente al cliente —
+siempre se traduce a un DTO (\texttt{ProductoResponse}), evitando acoplar el
+contrato público de la API al esquema interno de persistencia.
+
+% ======================================================
+\section{Parte B — Diseño de la API REST}
+% ======================================================
+
+\subsection{Nivel de madurez de Richardson}
+
+La API se ubica en el \textbf{Nivel 2} del modelo de madurez de Richardson
+\cite{richardson2018}: los recursos se identifican por URI, se usan verbos
+HTTP de forma disciplinada, y los códigos de estado son semánticamente
+correctos. No se alcanza el Nivel 3 porque no se implementa hipermedia
+(HATEOAS) más allá del header \texttt{Location}.
+
+\subsection{Convenciones de URI}
+
+Todas las URIs siguen las convenciones REST exigidas: sustantivos en plural,
+versionadas (\texttt{/api/v1/...}), sin verbos en la ruta, con los
+identificadores en el \emph{path} (nunca en \emph{query string}).
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{@{}lllll@{}}
+        \toprule
+        \textbf{Recurso} & \textbf{Método} & \textbf{URI} & \textbf{Éxito} & \textbf{Errores} \\
+        \midrule
+        Productos & POST   & \texttt{/api/v1/productos}      & 201 + \texttt{Location} & 400, 409, 422 \\
+        Productos & GET    & \texttt{/api/v1/productos}      & 200 & --- \\
+        Productos & GET    & \texttt{/api/v1/productos/\{id\}} & 200 & 404 \\
+        Productos & PUT    & \texttt{/api/v1/productos/\{id\}} & 200 (idemp.) & 404, 409, 422 \\
+        Productos & DELETE & \texttt{/api/v1/productos/\{id\}} & 204 (idemp.) & 404 \\
+        Pedidos   & POST   & \texttt{/api/v1/pedidos}        & 201 + \texttt{Location} & 400, 404, 409, 422, 503 \\
+        Pedidos   & GET    & \texttt{/api/v1/pedidos}        & 200 & --- \\
+        Pedidos   & GET    & \texttt{/api/v1/pedidos/\{id\}} & 200 & 404 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Endpoints expuestos por \texttt{svc-catalogo} y \texttt{svc-pedidos}}
+    \label{tab:endpoints}
+\end{table}
+
+\subsection{Idempotencia}
+
+\texttt{PUT} y \texttt{DELETE} son idempotentes por diseño: invocar
+\texttt{PUT /api/v1/productos/1} múltiples veces con el mismo cuerpo produce
+siempre el mismo estado final; \texttt{DELETE} sobre un recurso ya eliminado
+devuelve \texttt{404} en la segunda invocación, pero el \emph{estado del
+sistema} no cambia entre la primera y las siguientes llamadas —justamente lo
+que exige la definición de idempotencia. \texttt{POST}, en cambio, no es
+idempotente: cada invocación crea un nuevo recurso.
+
+\subsection{Manejo de errores: distinción 400 vs.\ 422}
+
+Un aspecto cuidado del diseño es la distinción exigida por la rúbrica entre
+\texttt{400 Bad Request} (JSON sintácticamente inválido) y
+\texttt{422 Unprocessable Entity} (JSON válido que viola una regla de
+dominio). En Spring, esto se logra capturando dos excepciones distintas en el
+\texttt{GlobalExceptionHandler}:
+
+\begin{lstlisting}[caption={Distinción entre JSON malformado (400) y validación de dominio (422)}, label={lst:exceptionhandler}]
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<ErrorResponse> manejarValidacion(
+        MethodArgumentNotValidException ex) {
+    // @Valid fallo una regla de negocio -> JSON SI era valido
+    String detalle = ex.getBindingResult().getFieldErrors().stream()
+            .map(err -> err.getField() + ": " + err.getDefaultMessage())
+            .collect(Collectors.joining("; "));
+    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+            .body(new ErrorResponse(detalle, "VALIDACION_FALLIDA"));
+}
+
+@ExceptionHandler(HttpMessageNotReadableException.class)
+public ResponseEntity<ErrorResponse> manejarJsonMalformado(
+        HttpMessageNotReadableException ex) {
+    // Jackson ni siquiera pudo parsear el JSON -> ocurre ANTES de @Valid
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse(
+                "El cuerpo de la peticion no es JSON valido",
+                "JSON_MALFORMADO"));
+}
+\end{lstlisting}
+
+\subsection{Documentación OpenAPI}
+
+Cada microservicio publica su especificación OpenAPI 3.0 mediante
+\texttt{springdoc-openapi-starter-webmvc-ui}, accesible en
+\texttt{/api/v1/openapi.json} y visualizable en Swagger UI
+(\texttt{/api/v1/docs}). Los artefactos exportados se encuentran en
+\texttt{docs/api/catalogo.json} y \texttt{docs/api/pedidos.json} del
+repositorio.
+
+% ======================================================
+\section{Parte C — Comunicación entre Servicios}
+% ======================================================
+
+\subsection{Comunicación síncrona con timeout explícito}
+
+Al crear un pedido, \texttt{svc-pedidos} invoca por HTTP a
+\texttt{svc-catalogo} para verificar existencia y disponibilidad del producto.
+La comunicación se implementa con \texttt{RestClient} (Spring Framework 6.1+)
+configurado con un \texttt{connectTimeout}/\texttt{readTimeout} explícito de
+2 segundos:
+
+\begin{lstlisting}[caption={Cliente HTTP con timeout explícito hacia \texttt{svc-catalogo}}, label={lst:catalogoclient}]
+SimpleClientHttpRequestFactory factory =
+        new SimpleClientHttpRequestFactory();
+int timeoutMillis = (int) (timeoutSeconds * 1000);
+factory.setConnectTimeout(timeoutMillis);
+factory.setReadTimeout(timeoutMillis);
+
+this.restClient = RestClient.builder()
+        .baseUrl(baseUrl)
+        .requestFactory(factory)
+        .build();
+\end{lstlisting}
+
+\subsection{Manejo de fallos}
+
+Tres escenarios de fallo se manejan explícitamente, cada uno mapeado a un
+código HTTP semánticamente correcto (Tabla~\ref{tab:fallos}):
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{@{}p{4.2cm}p{2cm}p{6.5cm}@{}}
+        \toprule
+        \textbf{Escenario} & \textbf{Código} & \textbf{Mecanismo} \\
+        \midrule
+        Producto no existe en el catálogo & 404 & \texttt{HttpClientErrorException.NotFound} $\to$ \texttt{ProductoInexistenteException} \\
+        Stock insuficiente & 409 & Regla de negocio en \texttt{PedidoService}, \texttt{StockInsuficienteException} \\
+        \texttt{svc-catalogo} caído / colgado & 503 & \texttt{ResourceAccessException} (timeout o conexión rechazada) $\to$ \texttt{CatalogoNoDisponibleException} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Manejo de fallos en la comunicación inter-servicio}
+    \label{tab:fallos}
+\end{table}
+
+\begin{lstlisting}[caption={Captura y traducción de fallos de red a excepciones de dominio}, label={lst:catchfallos}]
+try {
+    return restClient.get()
+            .uri("/api/v1/productos/{id}", productoId)
+            .retrieve()
+            .body(ProductoDTO.class);
+} catch (HttpClientErrorException.NotFound e) {
+    throw new ProductoInexistenteException(productoId);
+} catch (HttpServerErrorException e) {
+    throw new CatalogoNoDisponibleException(
+            "svc-catalogo respondio con error del servidor: "
+            + e.getStatusCode());
+} catch (ResourceAccessException e) {
+    // Cubre timeout y conexion rechazada
+    throw new CatalogoNoDisponibleException(
+            "svc-catalogo no respondio en " + timeoutSeconds
+            + "s: " + e.getMessage());
+}
+\end{lstlisting}
+
+Nunca se deja que el error de red se propague como un \texttt{500} genérico,
+ni que la petición se cuelgue indefinidamente esperando al catálogo —esto es
+central para la pregunta 6 del componente de análisis (Sección~\ref{sec:analisis}).
+
+% ======================================================
+\section{Parte D — Contenerización con Docker}
+% ======================================================
+
+\subsection{\emph{Multi-stage build}}
+
+Cada microservicio cuenta con un \texttt{Dockerfile} de dos etapas: una etapa
+de compilación (con el JDK completo y Maven) y una etapa de \emph{runtime}
+(solo el JRE), siguiendo las buenas prácticas documentadas por
+Karabey~Aksakalli~et~al.~\cite{aksakalli2021}.
+
+\begin{lstlisting}[language={}, basicstyle=\ttfamily\footnotesize, caption={Dockerfile multi-stage de \texttt{svc-catalogo}}, label={lst:dockerfile}]
+# ---------- Etapa 1: build ----------
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /build
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY src ./src
+RUN mvn -B clean package -DskipTests
+
+# ---------- Etapa 2: runtime ----------
+FROM eclipse-temurin:21-jre-alpine AS runtime
+RUN apk add --no-cache curl \
+    && addgroup -S app && adduser -S app -G app
+WORKDIR /app
+COPY --from=build /build/target/svc-catalogo.jar app.jar
+USER app
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=5 \
+    CMD curl -f http://localhost:8000/health || exit 1
+ENTRYPOINT ["java", "-jar", "app.jar"]
+\end{lstlisting}
+
+\subsection{Justificación de la imagen base}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{Etapa build} (\texttt{maven:3.9-eclipse-temurin-21}): incluye
+    JDK completo + Maven, necesarios solo para compilar. Se descarta por completo
+    de la imagen final.
+    \item \textbf{Etapa runtime} (\texttt{eclipse-temurin:21-jre-alpine}): solo
+    el JRE sobre Alpine Linux —sin compilador, sin Maven, sin código fuente—,
+    resultando en una imagen de aproximadamente 180--220~MB frente a los
+    500+~MB de la imagen de construcción, con una superficie de ataque mínima.
+    \item Ambas imágenes ejecutan como \textbf{usuario no-root} (\texttt{app}),
+    creado explícitamente en el \texttt{Dockerfile}, y exponen únicamente el
+    puerto \texttt{8000}.
+\end{itemize}
+
+% ======================================================
+\section{Parte E — Orquestación con Docker Compose}
+% ======================================================
+
+El archivo \texttt{docker-compose.yml} orquesta cinco servicios: las dos
+bases de datos PostgreSQL, los dos microservicios y Nginx como puerta de
+entrada única.
+
+\begin{lstlisting}[language={}, basicstyle=\ttfamily\footnotesize, caption={Extracto de \texttt{docker-compose.yml}: healthchecks encadenados}, label={lst:compose}]
+svc-pedidos:
+  build: ./svc-pedidos
+  depends_on:
+    db-pedidos:
+      condition: service_healthy
+    svc-catalogo:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    interval: 10s
+    timeout: 3s
+    retries: 8
+    start_period: 30s
+\end{lstlisting}
+
+\textbf{Características clave:}
+\begin{itemize}[leftmargin=2em]
+    \item Red \texttt{mercadoquevedo-net} (\emph{bridge}) dedicada: ningún
+    servicio interno tiene puertos publicados al host, salvo Nginx
+    (\texttt{8080:80}).
+    \item \texttt{depends\_on} con \texttt{condition: service\_healthy} en
+    cascada: las bases de datos deben estar \emph{healthy} antes de que
+    arranquen los microservicios, y éstos deben estarlo antes de que Nginx los
+    reciba como \emph{upstream}.
+    \item Volúmenes nombrados (\texttt{catalogo\_data}, \texttt{pedidos\_data})
+    para persistencia entre reinicios.
+    \item Nginx enruta \texttt{/api/v1/productos/*} hacia \texttt{svc-catalogo}
+    y \texttt{/api/v1/pedidos/*} hacia \texttt{svc-pedidos}; es el único
+    servicio con healthcheck basado en \texttt{curl} sobre una imagen propia
+    (\texttt{nginx/Dockerfile}) que agrega dicha dependencia, ya que la imagen
+    oficial \texttt{nginx:alpine} reciente no la incluye por defecto.
+\end{itemize}
+
+% ======================================================
+\section{Parte F — Calidad del Código y del Repositorio}
+% ======================================================
+
+El repositorio se organiza siguiendo la convención estándar de un proyecto
+Maven multi-módulo informal (dos proyectos independientes en carpetas
+hermanas), con:
+
+\begin{itemize}[leftmargin=2em]
+    \item Historial de commits descriptivo por funcionalidad.
+    \item \texttt{README.md} con instrucciones completas de compilación y
+    despliegue (\texttt{docker compose up --build}, un solo comando).
+    \item Especificación OpenAPI publicada en \texttt{docs/api/}.
+    \item \texttt{.gitignore} y \texttt{.dockerignore} excluyendo artefactos
+    de build (\texttt{target/}, \texttt{*.class}) del control de versiones y
+    del contexto de construcción de Docker.
+    \item \texttt{ANALISIS.md} con el componente de análisis y defensa técnica
+    (reproducido y ampliado en la Sección~\ref{sec:analisis}).
+\end{itemize}
+
+% ======================================================
+\section{Componente de Análisis y Defensa Técnica}
+\label{sec:analisis}
+% ======================================================
+
+\subsection{¿Cuál restricción REST de Fielding identifica con mayor claridad?}
+
+La más clara es la \textbf{interfaz uniforme} (\emph{uniform interface})
+\cite{fielding2000}, en particular sus sub-restricciones de \emph{identificación
+de recursos} y \emph{manipulación de recursos a través de representaciones}.
+En \texttt{ProductoController}, el identificador \texttt{\{id\}} localiza el
+recurso solo por URI (sin verbos en la ruta), y el cliente lo manipula
+únicamente a través de representaciones (\emph{records} \texttt{ProductoRequest}/
+\texttt{ProductoResponse}), nunca accediendo a la entidad JPA directamente. El
+\texttt{ResponseEntity.created(URI...)} es además un mensaje autodescriptivo
+que indica al cliente dónde vive el nuevo recurso. También se cumple
+\textbf{stateless}: ningún controlador guarda sesión ni contexto entre
+peticiones.
+
+\subsection{¿En qué nivel del modelo de madurez de Richardson se ubica la API?}
+
+\textbf{Nivel 2}: recursos identificados por URI, verbos HTTP disciplinados,
+códigos de estado semánticamente correctos, pero sin hipermedia (HATEOAS) más
+allá del header \texttt{Location} —lo que impide alcanzar el Nivel 3. Ejemplo
+concreto: \texttt{POST /api/v1/productos} con SKU repetido devuelve
+\texttt{409 Conflict} con cuerpo \texttt{\{"codigo":"SKU\_DUPLICADO"\}}, en
+lugar de un genérico \texttt{200 OK} que sería típico de un Nivel 0/1.
+
+\subsection{Acoplamiento residual entre \texttt{svc-catalogo} y \texttt{svc-pedidos} (Newman)}
+
+Pese al desacoplamiento de datos (\emph{Database per Service}), Newman
+\cite{newman2021} señala que \emph{coupling} y \emph{cohesion} deben
+evaluarse más allá del esquema de datos. Se identifican dos acoplamientos
+residuales:
+
+\begin{enumerate}[leftmargin=2em]
+    \item \textbf{Acoplamiento temporal}: \texttt{PedidoService.crear()}
+    llama a \texttt{CatalogoClient} de forma síncrona y bloqueante; ambos
+    servicios deben estar vivos simultáneamente.
+    \item \textbf{Acoplamiento de contrato}: \texttt{svc-pedidos} deserializa
+    directamente la respuesta de \texttt{svc-catalogo} en \texttt{ProductoDTO};
+    un cambio de esquema no versionado rompería la deserialización en tiempo
+    de ejecución, sin aviso en compilación.
+\end{enumerate}
+
+\textbf{Mitigación en producción}: migrar la verificación de stock a un
+modelo orientado a eventos (EDA) con Kafka/RabbitMQ (patrón CQRS, réplica de
+solo lectura en \texttt{svc-pedidos}); introducir pruebas de contrato
+(Spring Cloud Contract/Pact) sobre el OpenAPI publicado; y versionar la API
+(\texttt{/api/v1/} $\to$ \texttt{/api/v2/}) ante cambios incompatibles.
+
+\subsection{Justificación de microservicios pese al hallazgo de Blinowski et al.}
+
+Blinowski et al.~\cite{blinowski2022} muestran que, sobre una sola máquina,
+un monolito puede superar en rendimiento a su equivalente en microservicios,
+por el \emph{overhead} de red, serialización y arranque de múltiples JVMs.
+Ese hallazgo es correcto pero mide \emph{rendimiento crudo}, no las razones
+reales de migración en MercadoQuevedo: escalado independiente ante demanda
+diferenciada entre catálogo y pedidos, aislamiento de fallos (demostrado en
+el prototipo: si \texttt{svc-catalogo} cae, \texttt{svc-pedidos} responde
+\texttt{503} controlado en vez de caer con él), y autonomía organizacional a
+futuro cuando existan varios equipos. Como advierte el propio Newman, la
+complejidad operativa de los microservicios ``solo se paga cuando sus
+beneficios se necesitan''; aquí se paga deliberadamente como prueba de
+concepto, no por necesidad de throughput actual.
+
+\subsection{REST vs.\ gRPC entre \texttt{svc-pedidos} y \texttt{svc-catalogo}}
+
+\textbf{Se ganaría}: menor latencia y tamaño de payload (Protocol Buffers
+binario sobre HTTP/2 vs.\ JSON sobre HTTP/1.1), tipado fuerte del contrato en
+tiempo de compilación vía \texttt{.proto} (eliminando el riesgo de
+deserialización silenciosa descrito arriba), y \emph{streaming} nativo.
+\textbf{Se perdería}: accesibilidad para consumidores externos —el examen
+exige que \texttt{svc-catalogo} sea consumible con \texttt{curl}/Postman y
+documentado en OpenAPI/Swagger, algo que gRPC no ofrece nativamente sin
+herramientas especializadas (\texttt{grpcurl})— y la simplicidad de depuración
+durante la demostración en vivo. \textbf{Conclusión}: mantener REST público
+en \texttt{svc-catalogo} y evaluar gRPC únicamente para la llamada interna si
+el volumen de tráfico lo justificara.
+
+\subsection{Si \texttt{svc-catalogo} se detiene: código HTTP y Circuit Breaker}
+
+\textbf{Código recibido}: \texttt{503 Service Unavailable}
+(\texttt{CATALOGO\_NO\_DISPONIBLE}), porque el \texttt{ConnectException}
+(conexión rechazada) o el \texttt{SocketTimeoutException} (tras 2s) se
+envuelven en \texttt{ResourceAccessException}, capturada explícitamente y
+traducida a \texttt{CatalogoNoDisponibleException}, mapeada a \texttt{503} por
+el \texttt{GlobalExceptionHandler}.
+
+\textbf{Introducción de Circuit Breaker}: mediante Resilience4j
+(\texttt{@CircuitBreaker(name = "catalogo", fallbackMethod = "...")}
+sobre \texttt{CatalogoClient.obtenerProducto}), con tres estados:
+
+\[
+\text{CLOSED} \xrightarrow{\text{N fallos consecutivos}} \text{OPEN}
+\xrightarrow{\text{cooldown}} \text{HALF-OPEN}
+\begin{cases}
+\text{éxito} \to \text{CLOSED} \\
+\text{falla} \to \text{OPEN}
+\end{cases}
+\]
+
+La diferencia clave frente al manejo actual (\texttt{try/catch} + timeout):
+en estado \texttt{OPEN}, las peticiones fallan \emph{inmediatamente} sin
+esperar los 2 segundos de timeout ni consumir un hilo del \emph{pool} HTTP por
+intento —protegiendo a \texttt{svc-pedidos} de una falla en cascada cuando
+\texttt{svc-catalogo} está caído y el sistema recibe tráfico sostenido.
+
+% ======================================================
+\section{Conclusiones}
+% ======================================================
+
+\begin{enumerate}[leftmargin=2em]
+    \item El prototipo demuestra los cinco pilares exigidos por la Unidad 2:
+    separación de dominios con \emph{Database per Service}, diseño RESTful de
+    Nivel 2 de Richardson, comunicación inter-servicio síncrona con manejo
+    explícito de fallos, contenerización con \emph{multi-stage builds}, y
+    orquestación reproducible con un solo comando (\texttt{docker compose up
+    --build}).
+    \item El acoplamiento temporal identificado en la comunicación síncrona
+    REST es una limitación consciente del alcance del examen; en producción
+    se mitigaría con un modelo orientado a eventos, tal como se discute en la
+    Sección~\ref{sec:analisis}.
+    \item La arquitectura implementada es exactamente la base sobre la que se
+    construirá el Proyecto Fin de Curso, validando que las decisiones de
+    diseño tomadas aquí (API Gateway, Database per Service, JWT pendiente de
+    integrar) son extensibles.
+\end{enumerate}
+
+% ======================================================
+\begin{thebibliography}{9}
+% ======================================================
+
+\bibitem{richardson2018}
+C.~Richardson, \emph{Microservices Patterns: With Examples in Java}.
+Shelter Island, NY, USA: Manning Publications, 2018.
+
+\bibitem{fielding2000}
+R.~T.~Fielding, ``Architectural Styles and the Design of Network-based
+Software Architectures,'' Ph.D.\ dissertation, Univ.\ of California, Irvine,
+Irvine, CA, USA, 2000.
+
+\bibitem{newman2021}
+S.~Newman, \emph{Building Microservices: Designing Fine-Grained Systems},
+2nd~ed. Sebastopol, CA, USA: O'Reilly Media, 2021.
+
+\bibitem{aksakalli2021}
+I.~Karabey~Aksakalli, T.~Çelik, A.~B.~Can, and B.~Tekinerdoğan,
+``Deployment and communication patterns in microservice architectures: A
+systematic literature review,'' \emph{Journal of Systems and Software},
+vol.~180, art.~111014, 2021, doi: 10.1016/j.jss.2021.111014.
+
+\bibitem{blinowski2022}
+G.~Blinowski, A.~Ojdowska, and A.~Przybyłek, ``Monolithic vs.\ microservice
+architecture: A performance and scalability evaluation,'' \emph{IEEE Access},
+vol.~10, pp.~20357--20374, 2022, doi: 10.1109/ACCESS.2022.3152803.
+
+\end{thebibliography}
+
+\end{document}
